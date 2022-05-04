@@ -1,0 +1,225 @@
+<!- A web based tool to create Mind Maps ->
+<!- James Peters                         ->
+<!- May 4, 2022                          ->
+
+<!- https://quickchart.io/documentation/graphviz-api/ ->
+<!- Use some CSS to spice this up ->
+<!- Complete the code for adding concepts, reset network, display the graph... ->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+	
+.left{
+	float: left;
+	width: 20%; /* The width is 20%, by default */
+	} 
+.right {
+  float: right;
+  width: 80%; /* The width is 20%, by default */
+}
+
+/* Use a media query to add a breakpoint at 800px: */
+@media screen and (max-width: 800px) {
+  .left, .main, .right {
+    width: 100%; /* The width is 100%, when the viewport is 800px or smaller */
+  }
+}
+	
+.header {
+  background-color: #F1F1F1;
+
+  padding: 1%;
+}
+.column1 {
+  float: left;
+  width: 20%;
+  padding: 1%;
+  background-color: #F1F1F1;
+}
+.column2 {
+  float: left;
+  width: 75%;
+}
+
+</style>
+
+<script>
+let conceptlist = [];
+let c1="";
+let c2="";
+var delayInMilliseconds = 4000; //4 second
+let r=[];
+let stepstate=0;
+
+function graphIt() {
+let s="";
+for (let i=0;i< conceptlist.length;i++)
+	s=s+conceptlist[i];
+
+let a="https://quickchart.io/graphviz?&width=1000&scale=100&graph=graph{"+s+"}\"";
+//console.debug(a);
+
+//window.location=a;
+
+var webFrame = document.getElementById("graphelement");
+if (!!webFrame) {    
+    webFrame.src = a;
+}
+}
+
+function recursivedelay()
+{
+    setTimeout(function() {
+    console.debug("in anonymous function");
+	conceptlist.push(r.pop());
+	console.debug(conceptlist);
+	graphIt();
+	if (r.length!=0)
+	    recursivedelay();	
+    }, delayInMilliseconds);
+}
+
+function singlestep()
+{
+	console.debug("Entered step");
+	if (stepstate==0)
+	{
+		stepstate=1;
+		r = conceptlist.map((x) => x);
+		r.reverse();
+		conceptlist.length=0;
+
+		let c="about:blank";
+		console.debug("Step display");
+		var webFrame = document.getElementById("graphelement");
+		if (!!webFrame) {    
+			webFrame.src = c;
+		}
+	}
+	else
+	{		
+		console.debug("step state 1");
+		if (r.length!=0)
+		{
+			conceptlist.push(r.pop());
+			console.debug(conceptlist);
+			graphIt();
+		}
+		else
+		{
+			stepstate=0;
+		}
+	}
+}
+
+function play()
+{
+
+	let temp=[];
+    r = conceptlist.map((x) => x);
+	temp=conceptlist;
+	r.reverse();
+	conceptlist.length=0;
+
+	console.debug("Entered play");
+
+	let c="about:blank";
+	var webFrame = document.getElementById("graphelement");
+	if (!!webFrame) {    
+		webFrame.src = c;
+	}
+
+  console.debug("r.length is "+r.length);
+
+  if (r.length!=0)
+  {
+		recursivedelay();
+  }
+}
+
+function graphImage() {
+
+localStorage.setItem("conceptlist", conceptlist); 
+let a="https://quickchart.io/graphviz?&width=900&height=900&graph=digraph{"+conceptlist+"}\"";
+//console.debug(a);
+
+window.location=a;
+
+}
+function add2() {
+c1=document.getElementById("concept1").value;
+console.debug(c1);
+c1 = c1.replace(/\+/g,"%2b");
+c2=document.getElementById("concept2").value;
+c2 = c2.replace(/\+/g,"%2b");
+
+conceptlist.push("\""+c1+"\""+"--"+"\""+c2+"\""+";");
+
+console.debug(conceptlist);
+document.getElementById("concept1").value="";
+document.getElementById("concept2").value="";
+graphIt();
+document.getElementById("concept1").style.width = ((20 + 3) * 8) + 'px';
+document.getElementById("concept2").style.width = ((20 + 3) * 8) + 'px';
+document.getElementById("concept1").focus();
+
+	
+}
+
+function clearit()
+{
+   while(conceptlist.length)
+     conceptlist.pop();
+	 
+   let a="https://quickchart.io/graphviz?&width=900&height=900&graph=digraph{"+conceptlist+"}\"";
+
+   console.debug("reset");
+   console.debug(a);
+
+	graphIt();
+}
+
+function undo() {
+conceptlist.pop();
+graphIt();
+}
+function graph() {
+let s="";
+for (let i=0;i< conceptlist.length;i++)
+	s=s+conceptlist[i];
+
+let a="https://quickchart.io/graphviz?&width=900&height=900&graph=graph{"+s+"}\"";
+
+window.location=a;
+
+}
+
+</script>
+<body onload="if ($(window).height() < 900){
+    	$('body').css('transform', 'scale(0.85,0.85)');
+    }">
+<h2 class="header">Mind Map Tool</h2>
+
+<div class="left">
+<form>
+<label for="fname" id="fname">Concept:</label><br>
+<input type="text" id="concept1" 
+onkeypress="this.style.width = ((this.value.length + 3) * 8) + 'px';"><br>
+<label for="lname">Related Concept:</label><br>
+<input type="text" id="concept2" 
+onkeypress="this.style.width = ((this.value.length + 3) * 8) + 'px';"><br><br>
+<input type="button" id="add" value="Add Relationship" onclick="add2()"><br><br>
+<input type="button" value="Undo" onclick="undo()"> <br><br>
+<input type="button" value="Reset" onclick="clearit()"> <br><br>
+<input type="button" value="Step" onclick="singlestep()"> <br><br>
+<input type="button" value="Play" onclick="play()"> <br><br>
+ <br>
+<a href="https://sites.google.com/view/jfp-qc-pd-2022/home">More info </a>
+
+</form> 
+</div>
+<div class="right">
+<iframe height="100%" width="100%" id="graphelement"></iframe>
+</div> 
+</body>
