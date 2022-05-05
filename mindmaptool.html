@@ -1,10 +1,9 @@
-<!- A web based tool to create Mind Maps ->
-<!- James Peters                         ->
-<!- May 4, 2022                          ->
-
+<!- A web based tool to create Mind Maps  ->
+<!- James Peters                          ->
+<!- May 4, 2022                           ->
+<!- This page invokes a web API see below ->
 <!- https://quickchart.io/documentation/graphviz-api/ ->
-<!- Use some CSS to spice this up ->
-<!- Complete the code for adding concepts, reset network, display the graph... ->
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -151,8 +150,10 @@ function add2() {
 c1=document.getElementById("concept1").value;
 console.debug(c1);
 c1 = c1.replace(/\+/g,"%2b");
+c1 = c1.replace(/\&/g,"%26");
 c2=document.getElementById("concept2").value;
 c2 = c2.replace(/\+/g,"%2b");
+c1 = c1.replace(/\&/g,"%26");
 
 conceptlist.push("\""+c1+"\""+"--"+"\""+c2+"\""+";");
 
